@@ -100,7 +100,7 @@
 
 <!-- Music toggle -->
 <div id="music-btn" class="hidden">🎵</div>
-<audio id="bgmusic" src="assets/music.mp3" loop></audio>
+<audio id="bgmusic" src="assets/music.mp3" loop preload="auto"></audio>
 
 <!-- Loading screen -->
  <div id="screen-tap" class="screen">
@@ -252,6 +252,9 @@ function loadCharacter() {
 }
 
 // ── Animation loop ──
+document.getElementById('canvas').addEventListener('click', () => {
+  document.getElementById('bgmusic').play();
+});
 function animate() {
   requestAnimationFrame(animate);
   const delta = clock.getDelta();
