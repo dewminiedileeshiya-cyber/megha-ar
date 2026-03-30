@@ -13,7 +13,6 @@
     canvas  { position:fixed; inset:0; width:100%; height:100%;
              z-index:1; pointer-events:none; }
 
-    /* ── Overlay screens ── */
     .screen {
       position:fixed; inset:0; z-index:10;
       display:flex; flex-direction:column;
@@ -31,14 +30,12 @@
     .spin { animation: spin 1s linear infinite; display:inline-block; }
     @keyframes spin { to { transform:rotate(360deg); } }
 
-    /* Locked screen */
     #screen-locked h2 { color:#ff4d6b; }
     #screen-locked .icon { animation: shake 0.5s ease-in-out 3; }
     @keyframes shake {
       0%,100%{transform:translateX(0)} 25%{transform:translateX(-10px)} 75%{transform:translateX(10px)}
     }
 
-    /* HUD */
     #hud {
       position:fixed; top:1rem; left:50%; transform:translateX(-50%);
       z-index:5; display:flex; gap:.6rem;
@@ -54,7 +51,6 @@
       backdrop-filter:blur(8px);
     }
 
-    /* Music button */
     #music-btn {
       position:fixed; bottom:2rem; right:1.5rem; z-index:6;
       width:48px; height:48px;
@@ -67,7 +63,6 @@
       backdrop-filter:blur(8px);
     }
 
-    /* Back button */
     #back-btn {
       position:fixed; top:1rem; left:1rem; z-index:6;
       background:rgba(0,0,0,.5);
@@ -83,73 +78,59 @@
 </head>
 <body>
 
-<!-- Camera background -->
 <video id="video" autoplay muted playsinline></video>
-
-<!-- Three.js renders here -->
 <canvas id="canvas"></canvas>
-
-<!-- Back button -->
 <a href="index.html" id="back-btn">← Back</a>
 
-<!-- HUD chips -->
 <div id="hud" class="hidden">
   <div class="hud-chip">🏠 Megha House</div>
   <div class="hud-chip" id="dist-chip">📍 --m</div>
 </div>
 
-<!-- Music toggle -->
 <div id="music-btn" class="hidden">🎵</div>
 <audio id="bgmusic" src="assets/music.mp3" loop></audio>
 
-<!-- Loading screen -->
 <div id="screen-loading" class="screen">
   <div class="icon spin">🔵</div>
   <h2>Checking location…</h2>
-  <p>Please allow Camera and Location
-when the browser asks.</p>
+  <p>Please allow Camera and Location<br/>when the browser asks.</p>
 </div>
 
-<!-- Geo-locked screen -->
 <div id="screen-locked" class="screen hidden">
   <div class="icon">🔒</div>
   <h2>Access Locked</h2>
-  <p>This AR experience is only available
-
-  at Megha House, Obbegoda Secondary School.
-
-
+  <p>This AR experience is only available<br/>
+  at Megha House, Obbegoda Secondary School.<br/><br/>
   Come visit us at the House Meet Day! 🎉</p>
 </div>
 
-<!-- Model loading screen -->
 <div id="screen-model" class="screen hidden">
   <div class="icon spin">⚡</div>
   <h2>Loading AR…</h2>
   <p id="model-progress">Loading 3D model…</p>
 </div>
 
-<!-- Three.js + GLTFLoader from CDN -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 
 <script>
 // ═══════════════════════════════════════════════════
-// MEGHA HOUSE AR — MAIN SCRIPT
+// MEGHA HOUSE AR — COMPLETE FINAL CODE
 // ═══════════════════════════════════════════════════
 
-// ──────────────────────────────────────────────────
-// ⚠️  CHANGE THESE TWO VALUES TO YOUR REAL GPS COORDS
-// ──────────────────────────────────────────────────
-const GEO_LAT    = 6.930225;   // ← YOUR REAL LATITUDE HERE
-const GEO_LON    = 81.363424;  // ← YOUR REAL LONGITUDE HERE
-const GEO_RADIUS = 30;          // metres — 30m is good
+// ── GPS SETTINGS ──
+const GEO_LAT    = 6.930225;   // Home coordinates
+const GEO_LON    = 81.363424;  // Home coordinates
+const GEO_RADIUS = 30;         // 30 metre radius
 
-// Character position: 3m in front of camera, at ground level
-const CHAR_DISTANCE = 3;
-const CHAR_Y        = -1.0;  // approximate ground (phone held at ~1.6m height)
+// ── CHARACTER SETTINGS ──
+const CHAR_Y        = -1.0;    // Ground level for AJ character
+const CHAR_DISTANCE = 3;       // 3 metres in front
 
-// ── Utility: distance in metres between two GPS coords ──
+// ── GPS BYPASS FOR TESTING ──
+const BYPASS_GPS = true;       // ← Change to false on EVENT DAY!
+
+// ── GPS distance calculator ──
 function gpsDistance(lat1, lon1, lat2, lon2) {
   const R = 6371000;
   const dLat = (lat2-lat1) * Math.PI/180;
@@ -161,7 +142,28 @@ function gpsDistance(lat1, lon1, lat2, lon2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-// ── Helper: show/hide screens ──
+// ── GPS ANCHORING ──
+// Character position is fixed at GPS coords
+// User moves phone → character stays at fixed spot
+let userHeading = 0;
+let userLat = GEO_LAT;
+let userLon = GEO_LON;
+
+function updateAnchoredPosition() {
+  if(!model) return;
+
+  // Convert GPS difference to metres
+  const dx = (GEO_LON - userLon) * 111320 * Math.cos(userLat * Math.PI/180);
+  const dz = (GEO_LAT - userLat) * 110540;
+
+  // Clamp to reasonable range
+  const clampedX = Math.max(-20, Math.min(20, dx));
+  const clampedZ = Math.max(-20, Math.min(20, dz));
+
+  model.position.set(clampedX, CHAR_Y, -Math.abs(clampedZ) - CHAR_DISTANCE);
+}
+
+// ── Show/hide screens ──
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
   if(id) document.getElementById(id).classList.remove('hidden');
@@ -183,8 +185,8 @@ function initThree() {
   camera.position.set(0, 0, 0);
   clock = new THREE.Clock();
 
-  // Lighting — warm ambient + directional sun
-  scene.add(new THREE.AmbientLight(0xffffff, 1.0));
+  // Lighting
+  scene.add(new THREE.AmbientLight(0xffffff, 1.2));
   const sun = new THREE.DirectionalLight(0xfffe8a, 1.5);
   sun.position.set(5, 10, 5);
   sun.castShadow = true;
@@ -206,35 +208,39 @@ function loadCharacter() {
     (gltf) => {
       model = gltf.scene;
 
-      // Scale and position: 3 metres in front, at ground
-      model.scale.set(0.5, 0.5, 0.5);
+      // Scale — realistic human size
+      model.scale.set(0.3, 0.3, 0.3);
+
+      // Position — 3m in front at ground level
       model.position.set(0, CHAR_Y, -CHAR_DISTANCE);
 
-      // Face the user (rotate 180° so front faces camera)
+      // Face the user
       model.rotation.y = Math.PI;
 
       scene.add(model);
 
-      // Setup animation mixer
+      // Setup animation
       if(gltf.animations && gltf.animations.length > 0) {
         mixer = new THREE.AnimationMixer(model);
-        // Play the first animation (your idle_loop)
         const action = mixer.clipAction(gltf.animations[0]);
         action.play();
       }
 
-      // All ready — hide overlay, show HUD
+      // All ready!
       showScreen(null);
       document.getElementById('hud').classList.remove('hidden');
       document.getElementById('music-btn').classList.remove('hidden');
 
-      // Auto-play music (may be blocked on iOS — user taps music btn)
+      // Auto-play music
       document.getElementById('bgmusic').play().catch(()=>{});
+
+      // Keep screen awake
+      keepAwake();
 
       animate();
     },
     (progress) => {
-      const pct = Math.round(progress.loaded/progress.total*100);
+      const pct = Math.round(progress.loaded / (progress.total || 1) * 100);
       document.getElementById('model-progress').textContent =
         `Loading 3D model… ${pct}%`;
     },
@@ -254,21 +260,37 @@ function animate() {
   renderer.render(scene, camera);
 }
 
-// ── Device orientation → move camera ──
-// This makes the 3D scene follow the phone's tilt
-let orientReady = false;
-
+// ── Device orientation → camera follows phone tilt ──
 function setupOrientation() {
   if(typeof DeviceOrientationEvent !== 'undefined') {
-    window.addEventListener('deviceorientation', (e) => {
-      if(!scene || !e.beta) return;
-      // Map device tilt to subtle camera look-around
-      const betaRad  = (e.beta  - 90) * Math.PI/180 * 0.3;
-      const gammaRad = e.gamma * Math.PI/180 * 0.3;
-      camera.rotation.x = -betaRad;
-      camera.rotation.z = gammaRad;
-    });
-    orientReady = true;
+
+    // iOS 13+ permission request
+    if(typeof DeviceOrientationEvent.requestPermission === 'function') {
+      DeviceOrientationEvent.requestPermission()
+        .then(resp => {
+          if(resp === 'granted') {
+            window.addEventListener('deviceorientation', handleOrientation);
+          }
+        }).catch(console.error);
+    } else {
+      window.addEventListener('deviceorientation', handleOrientation);
+    }
+  }
+}
+
+function handleOrientation(e) {
+  if(!scene || !e.beta) return;
+  const betaRad  = (e.beta - 90) * Math.PI/180 * 0.5;
+  const gammaRad = e.gamma * Math.PI/180 * 0.3;
+  camera.rotation.x = -betaRad;
+  camera.rotation.z = gammaRad;
+}
+
+// ── Keep screen awake ──
+async function keepAwake() {
+  if('wakeLock' in navigator) {
+    try { await navigator.wakeLock.request('screen'); }
+    catch(e) { console.log('Wake lock not available'); }
   }
 }
 
@@ -277,12 +299,19 @@ const musicBtn = document.getElementById('music-btn');
 let musicOn = true;
 musicBtn.addEventListener('click', () => {
   const audio = document.getElementById('bgmusic');
-  if(musicOn) { audio.pause(); musicBtn.textContent = '🔇'; musicOn = false; }
-  else { audio.play(); musicBtn.textContent = '🎵'; musicOn = true; }
+  if(musicOn) {
+    audio.pause();
+    musicBtn.textContent = '🔇';
+    musicOn = false;
+  } else {
+    audio.play();
+    musicBtn.textContent = '🎵';
+    musicOn = true;
+  }
 });
 
 // ══════════════════════════════════════════
-// MAIN ENTRY — Request camera then GPS
+// MAIN ENTRY
 // ══════════════════════════════════════════
 async function start() {
   showScreen('screen-loading');
@@ -290,12 +319,15 @@ async function start() {
   // 1. Start camera
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment', width:{ ideal:1280 }, height:{ ideal:720 } },
+      video: {
+        facingMode: 'environment',
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      },
       audio: false
     });
     document.getElementById('video').srcObject = stream;
   } catch(e) {
-    showScreen('screen-loading');
     document.querySelector('#screen-loading h2').textContent = '📷 Camera denied';
     document.querySelector('#screen-loading p').textContent =
       'Please allow camera access and refresh.';
@@ -310,25 +342,42 @@ async function start() {
 
   navigator.geolocation.getCurrentPosition(
     (pos) => {
-      const dist = gpsDistance(
-        pos.coords.latitude, pos.coords.longitude,
-        GEO_LAT, GEO_LON
-      );
+      userLat = pos.coords.latitude;
+      userLon = pos.coords.longitude;
+
+      const dist = gpsDistance(userLat, userLon, GEO_LAT, GEO_LON);
       document.getElementById('dist-chip').textContent = `📍 ${Math.round(dist)}m`;
 
-      if(true) {
-        // ✅ Inside the zone — launch AR
+      // ← BYPASS_GPS = true skips the check for testing
+      if(BYPASS_GPS || dist <= GEO_RADIUS) {
+        // ✅ Launch AR
         initThree();
         setupOrientation();
         loadCharacter();
+
+        // Watch GPS for anchoring updates
+        navigator.geolocation.watchPosition((p) => {
+          userLat = p.coords.latitude;
+          userLon = p.coords.longitude;
+          const d = gpsDistance(userLat, userLon, GEO_LAT, GEO_LON);
+          document.getElementById('dist-chip').textContent = `📍 ${Math.round(d)}m`;
+          updateAnchoredPosition();
+        }, null, { enableHighAccuracy: true });
+
       } else {
-        // ❌ Outside — show locked screen
+        // ❌ Locked
         showScreen('screen-locked');
       }
     },
     (err) => {
-      // GPS error — show locked
-      showScreen('screen-locked');
+      if(BYPASS_GPS) {
+        // Even if GPS fails, bypass allows AR
+        initThree();
+        setupOrientation();
+        loadCharacter();
+      } else {
+        showScreen('screen-locked');
+      }
       console.warn('GPS error:', err);
     },
     { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
