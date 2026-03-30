@@ -1,0 +1,8 @@
+# This file tells Netlify to add security headers
+# that are required for camera and GPS to work on HTTPS
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Permissions-Policy = "camera=*, geolocation=*"
+    X-Frame-Options = "SAMEORIGIN"
