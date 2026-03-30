@@ -254,9 +254,6 @@ function loadCharacter() {
 }
 
 // ── Animation loop ──
-document.getElementById('canvas').addEventListener('click', () => {
-  document.getElementById('bgmusic').play();
-});
 function animate() {
   requestAnimationFrame(animate);
   const delta = clock.getDelta();
