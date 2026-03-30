@@ -103,6 +103,11 @@
 <audio id="bgmusic" src="assets/music.mp3" loop></audio>
 
 <!-- Loading screen -->
+ <div id="screen-tap" class="screen">
+  <div class="icon">🎵</div>
+  <h2>Tap to Start</h2>
+  <p>Tap anywhere to begin<br/>the AR experience with music!</p>
+</div>
 <div id="screen-loading" class="screen">
   <div class="icon spin">🔵</div>
   <h2>Checking location…</h2>
@@ -284,6 +289,10 @@ musicBtn.addEventListener('click', () => {
 // ══════════════════════════════════════════
 // MAIN ENTRY — Request camera then GPS
 // ══════════════════════════════════════════
+document.getElementById('screen-tap').addEventListener('click', () => {
+  document.getElementById('bgmusic').play();
+  start();
+});
 async function start() {
   showScreen('screen-loading');
 
@@ -335,7 +344,7 @@ async function start() {
   );
 }
 
-start();
+showScreen('screen-tap');
 </script>
 </body>
 </html>
