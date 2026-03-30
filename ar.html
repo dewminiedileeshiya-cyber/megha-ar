@@ -237,9 +237,6 @@ function loadCharacter() {
       setTimeout(() => {
   document.getElementById('bgmusic').play().catch(()=>{});
 }, 1000);
-  document.removeEventListener('touchstart', tryPlay);
-  document.removeEventListener('click', tryPlay);
-};
 
       animate();
     },
