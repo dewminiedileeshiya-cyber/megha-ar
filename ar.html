@@ -348,7 +348,7 @@ async function start() {
       showScreen('screen-locked');
       console.warn('GPS error:', err);
     },
-    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 }
   );
 }
 
