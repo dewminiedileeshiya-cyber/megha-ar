@@ -125,7 +125,7 @@
   👋 Hey! I'm Zeeno, welcome to our web
 </a>
 <div id="music-btn" class="hidden">🎵</div>
-<audio id="bgmusic" src="assets/music.mp3" loop></audio>
+<audio id="bgmusic" src="assets/music.mp3"></audio>
 
 <!-- Loading screen -->
 <div id="screen-loading" class="screen">
@@ -255,7 +255,12 @@ function loadCharacter() {
       document.getElementById('zeeno-btn').classList.remove('hidden');
 
       // Auto-play music (may be blocked on iOS — user taps music btn)
-      document.getElementById('bgmusic').play().catch(()=>{});
+      const audio = document.getElementById('bgmusic');
+audio.play().catch(()=>{});
+setTimeout(() => {
+  audio.pause();
+  audio.currentTime = 0;
+}, 20000);
 
       animate();
     },
