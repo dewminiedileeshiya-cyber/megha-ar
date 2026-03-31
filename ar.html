@@ -353,10 +353,12 @@ async function start() {
       }
     },
     (err) => {
-      // GPS error — show locked
-      showScreen('screen-locked');
-      console.warn('GPS error:', err);
-    },
+  // GPS error — bypass allows AR anyway
+  initThree();
+  setupOrientation();
+  loadCharacter();
+  console.warn('GPS error:', err);
+},
     { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
   );
 }
