@@ -347,7 +347,7 @@ async function start() {
       );
       document.getElementById('dist-chip').textContent = `📍 ${Math.round(dist)}m`;
 
-      if(true) {
+      if(dist <= GEO_RADIUS) {
         // ✅ Inside the zone — launch AR
         initThree();
         setupOrientation();
@@ -358,10 +358,7 @@ async function start() {
       }
     },
     (err) => {
-  // GPS error — bypass allows AR anyway
-  initThree();
-  setupOrientation();
-  loadCharacter();
+  showScreen('screen-locked');
   console.warn('GPS error:', err);
 },
     { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
