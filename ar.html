@@ -100,7 +100,6 @@
 
 <!-- Music toggle -->
 <div id="music-btn" class="hidden">🎵</div>
-<audio id="bgmusic" src="assets/music.mp3" loop preload="auto"></audio>
 
 <!-- Loading screen -->
  <div id="screen-tap" class="screen">
@@ -235,7 +234,24 @@ function loadCharacter() {
 
       // Auto-play music (may be blocked on iOS — user taps music btn)
       setTimeout(() => {
-  document.getElementById('bgmusic').play().catch(()=>{});
+  const audio = document.createElement('audio');
+  audio.id = 'bgmusic';
+  audio.src = 'assets/music.mp3';
+  audio.loop = true;
+  audio.volume = 1.0;
+  document.body.appendChild(audio);
+  audio.play().catch(()=>{});
+
+  // Update music button
+  document.getElementById('music-btn').onclick = () => {
+    if(audio.paused) {
+      audio.play();
+      document.getElementById('music-btn').textContent = '🎵';
+    } else {
+      audio.pause();
+      document.getElementById('music-btn').textContent = '🔇';
+    }
+  };
 }, 1000);
 
       animate();
