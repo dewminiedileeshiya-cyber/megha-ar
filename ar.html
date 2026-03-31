@@ -347,7 +347,7 @@ async function start() {
       );
       document.getElementById('dist-chip').textContent = `📍 ${Math.round(dist)}m`;
 
-      if(dist <= GEO_RADIUS) {
+      if(true) {
         // ✅ Inside the zone — launch AR
         initThree();
         setupOrientation();
