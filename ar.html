@@ -100,9 +100,9 @@
 
 <!-- Music toggle -->
 <div id="music-btn" class="hidden">🎵</div>
+<audio id="bgmusic" src="assets/music.mp3" loop></audio>
 
 <!-- Loading screen -->
- <div id="screen-tap" class="screen">
 <div id="screen-loading" class="screen">
   <div class="icon spin">🔵</div>
   <h2>Checking location…</h2>
@@ -207,11 +207,11 @@ function loadCharacter() {
       model = gltf.scene;
 
       // Scale and position: 3 metres in front, at ground
-      model.scale.set(0.01, 0.01, 0.01);
+      model.scale.set(1, 1, 1);
       model.position.set(0, CHAR_Y, -CHAR_DISTANCE);
 
       // Face the user (rotate 180° so front faces camera)
-      model.rotation.y = 0;
+      model.rotation.y = Math.PI;
 
       scene.add(model);
 
@@ -229,26 +229,7 @@ function loadCharacter() {
       document.getElementById('music-btn').classList.remove('hidden');
 
       // Auto-play music (may be blocked on iOS — user taps music btn)
-      setTimeout(() => {
-  const audio = document.createElement('audio');
-  audio.id = 'bgmusic';
-  audio.src = 'assets/music.mp3';
-  audio.loop = true;
-  audio.volume = 1.0;
-  document.body.appendChild(audio);
-  audio.play().catch(()=>{});
-
-  // Update music button
-  document.getElementById('music-btn').onclick = () => {
-    if(audio.paused) {
-      audio.play();
-      document.getElementById('music-btn').textContent = '🎵';
-    } else {
-      audio.pause();
-      document.getElementById('music-btn').textContent = '🔇';
-    }
-  };
-}, 1000);
+      document.getElementById('bgmusic').play().catch(()=>{});
 
       animate();
     },
@@ -350,7 +331,7 @@ async function start() {
       showScreen('screen-locked');
       console.warn('GPS error:', err);
     },
-    { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 }
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
   );
 }
 
